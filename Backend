@@ -1,0 +1,197 @@
+//-- User Registration
+
+import json
+import boto3
+
+dynamodb = boto3.resource('dynamodb')
+# DynamoDB Table ka naam jaisa aapne banaya hai
+USERS_TABLE = dynamodb.Table('CityBusPass_Users') 
+
+def lambda_handler(event, context):
+    try:
+        # API Gateway se aane wali JSON body ko parse karein
+        body = json.loads(event['body'])
+        
+        user_data = {
+            'userId': body.get('userId'),
+            'name': body.get('name'),
+            'mobile': body.get('mobile'),
+            # Aap yahaan koi aur fields bhi daal sakte hain
+        }
+
+        # DynamoDB mein data save karein
+        USERS_TABLE.put_item(Item=user_data)
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*' # CORS Zaroori!
+            },
+            'body': json.dumps({'message': 'User registered successfully'})
+        }
+        
+    except Exception as e:
+        # Error ko CloudWatch logs mein print karein
+        print(f"UserRegistration Error: {e}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'message': 'Internal server error', 'error': str(e)})
+        }
+
+
+
+// PASSPURCHASE
+
+import json
+import boto3
+from decimal import Decimal
+
+dynamodb = boto3.resource('dynamodb')
+PASSES_TABLE = dynamodb.Table('CityBusPass_Passes')
+
+def lambda_handler(event, context):
+    try:
+        body = json.loads(event['body'])
+        
+        # Amount handling: Frontend se aane wale '₹' ko hata kar Decimal mein convert karein
+        amount_str = str(body.get('amount', 0)).replace('₹', '').strip()
+        
+        pass_data = {
+            'passId': body.get('passId'),
+            'userId': body.get('userId'),
+            'passType': body.get('passType'),
+            'fromStop': body.get('fromStop'),
+            'toStop': body.get('toStop'),
+            'passengerName': body.get('passengerName'),
+            'mobile': body.get('mobile'),
+            'amount': Decimal(amount_str), # DynamoDB ke liye zaroori
+            'purchaseDate': body.get('purchaseDate'),
+            'expiryDate': body.get('expiryDate'),
+            'status': body.get('status', 'active')
+        }
+
+        # DynamoDB mein data save karein
+        PASSES_TABLE.put_item(Item=pass_data)
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'message': 'Pass purchased and saved successfully'})
+        }
+        
+    except Exception as e:
+        # **<-- Yahaan pehle error detail print nahi ho rahi thi, ab hogi -->**
+        print(f"PassPurchase Error: {e}") 
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'message': 'Internal server error. Check logs for detail.', 'error': str(e)})
+        }
+
+//PASSRETRIVER
+        import json
+import boto3
+from decimal import Decimal
+
+dynamodb = boto3.resource('dynamodb')
+PASSES_TABLE = dynamodb.Table('CityBusPass_Passes')
+# ⚠️ GSI ka naam yahaan daalein (Jaisa aapne DynamoDB mein banaya tha)
+GSI_NAME = 'UserPassesIndex' 
+
+# DynamoDB Decimal ko standard JSON mein convert karne ke liye helper function
+def decimal_encoder(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError
+
+def lambda_handler(event, context):
+    try:
+        # Path parameter se userId extract karein
+        user_id = event['pathParameters']['userId']
+        
+        # DynamoDB GSI par Query operation perform karein
+        response = PASSES_TABLE.query(
+            IndexName=GSI_NAME,
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('userId').eq(user_id)
+        )
+        
+        passes = response.get('Items', [])
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            # Passes list ko JSON mein convert karein
+            'body': json.dumps(passes, default=decimal_encoder) 
+        }
+        
+    except Exception as e:
+        print(f"PassRetriever Error: {e}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'message': 'Internal server error', 'error': str(e)})
+        }
+
+
+//FARECALCULATION
+
+import json
+import math
+
+def lambda_handler(event, context):
+    try:
+        body = json.loads(event['body'])
+        
+        # Data validation and default values
+        selected_price = float(body.get('selectedPrice', 0))
+        discount_type = body.get('discountType', 'none')
+        
+        final_price = selected_price
+        
+        # Fare logic
+        if discount_type == 'student':
+            final_price = selected_price * 0.8
+        elif discount_type == 'senior':
+            final_price = selected_price * 0.5
+            
+        final_price = math.ceil(final_price) # Price ko round off karna
+
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'finalAmount': final_price,
+                'message': 'Fare calculated securely'
+            })
+        }
+        
+    except Exception as e:
+        print(f"FareCalculation Error: {e}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'message': 'Internal server error', 'error': str(e)})
+        }
