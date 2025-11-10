@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Bus Pass - Online Pass Purchase</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--white);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .logo h1 {
+            color: var(--dark);
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: var(--dark);
+            margin-bottom: 20px;
+            font-size: 22px;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .pass-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .pass-type {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .pass-type:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .pass-type.active {
+            border-color: var(--primary);
+            background: #dbeafe;
+        }
+
+        .pass-type h3 {
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .pass-type .price {
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .pass-type .validity {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .pass-history {
+            margin-top: 20px;
+        }
+
+        .pass-item {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .pass-item.expired {
+            border-left-color: var(--danger);
+            opacity: 0.7;
+        }
+
+        .pass-item h4 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .pass-item p {
+            color: #6b7280;
+            font-size: 13px;
+            margin: 3px 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-expired {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .qr-code {
+            text-align: center;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: white;
+            margin: 0 auto 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #d1d5db;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .route-selector {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .route-arrow {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .pass-types {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">🚌</div>
+                <div>
+                    <h1>City Bus Pass</h1>
+                    <p style="color: #6b7280; font-size: 14px;">Easy & Secure Pass Purchase</p>
+                </div>
+            </div>
+            <div class="user-info">
+                <span id="userName" style="color: var(--dark); font-weight: 600;"></span>
+                <button class="btn btn-secondary" onclick="showMyPasses()">My Passes</button>
+                <button class="btn btn-danger" onclick="logout()" id="logoutBtn" style="display: none;">Logout</button>
+                <button class="btn btn-primary" onclick="showLoginModal()" id="loginBtn">Login</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>📋 Purchase New Pass</h2>
+                
+                <div class="form-group">
+                    <label>Select Pass Type</label>
+                    <div class="pass-types">
+                        <div class="pass-type" data-type="daily" data-price="50" onclick="selectPass('daily', 50)">
+                            <h3>Daily Pass</h3>
+                            <div class="price">₹50</div>
+                            <div class="validity">Valid for 1 day</div>
+                        </div>
+                        <div class="pass-type" data-type="weekly" data-price="300" onclick="selectPass('weekly', 300)">
+                            <h3>Weekly Pass</h3>
+                            <div class="price">₹300</div>
+                            <div class="validity">Valid for 7 days</div>
+                        </div>
+                        <div class="pass-type" data-type="monthly" data-price="1000" onclick="selectPass('monthly', 1000)">
+                            <h3>Monthly Pass</h3>
+                            <div class="price">₹1000</div>
+                            <div class="validity">Valid for 30 days</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Route</label>
+                    <div class="route-selector">
+                        <select class="form-control" id="fromStop">
+                            <option value="">From</option>
+                            <option value="rajwada">Rajwada</option>
+                            <option value="palasia">Palasia</option>
+                            <option value="vijay-nagar">Vijay Nagar</option>
+                            <option value="bhanwar-kuwa">Bhanwar Kuwa</option>
+                            <option value="airport">Airport</option>
+                        </select>
+                        <span class="route-arrow">→</span>
+                        <select class="form-control" id="toStop">
+                            <option value="">To</option>
+                            <option value="rajwada">Rajwada</option>
+                            <option value="palasia">Palasia</option>
+                            <option value="vijay-nagar">Vijay Nagar</option>
+                            <option value="bhanwar-kuwa">Bhanwar Kuwa</option>
+                            <option value="airport">Airport</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+    
+</div>
+
+<div class="form-group">
+    <label>Passenger Name</label>
+    <input type="text" class="form-control" id="passengerName" placeholder="Enter your name" required pattern="[a-zA-Z\s]+" title="Letters and spaces only">
+</div>
+
+<div class="form-group">
+    <label>Mobile Number</label>
+    <input type="tel" class="form-control" id="mobileNumber" placeholder="Enter 10-digit mobile number" maxlength="10" required pattern="\d{10}" title="10-digit mobile number only">
+</div>
+
+<div class="form-group">
+    <label>Email Address</label>
+    <input type="email" class="form-control" id="emailAddress" placeholder="Enter your email" required>
+</div>
+
+                <div class="form-group">
+                    <label>Student/Senior Citizen</label>
+                    <select class="form-control" id="discount" onchange="updatePrice()">
+                        <option value="none">Regular Passenger</option>
+                        <option value="student">Student (20% off)</option>
+                        <option value="senior">Senior Citizen (50% off)</option>
+                    </select>
+                </div>
+
+                <div style="background: var(--light); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; color: var(--dark);">Total Amount:</span>
+                        <span style="font-size: 28px; font-weight: bold; color: var(--primary);" id="totalAmount">₹0</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="proceedToPay()">
+                    Proceed to Payment
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>🎫 Your Passes</h2>
+                <div id="passList" class="pass-history">
+                    <p style="text-align: center; color: #6b7280; padding: 40px 0;">
+                        No active passes. Purchase a pass to get started!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login / Register</h2>
+                <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="tel" class="form-control" id="loginMobile" placeholder="Enter 10-digit mobile" maxlength="10">
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" class="form-control" id="loginName" placeholder="Enter your name">
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="login()">Continue</button>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Payment</h2>
+                <button class="close-btn" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <div id="paymentContent">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">💳</div>
+                    <h3 style="color: var(--dark);">Complete Payment</h3>
+                    <p style="color: #6b7280;">Amount to pay: <strong id="payAmount" style="color: var(--primary); font-size: 24px;"></strong></p>
+                </div>
+                
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select class="form-control" id="paymentMethod">
+                        <option value="upi">UPI</option>
+                        <option value="card">Credit/Debit Card</option>
+                        <option value="netbanking">Net Banking</option>
+                        <option value="wallet">Wallet</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Card Number / UPI ID</label>
+                    <input type="text" class="form-control" id="paymentDetails" placeholder="Enter payment details">
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%;" onclick="completePayment()">
+                    Pay Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div style="text-align: center;">
+                <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+                <h2 style="color: var(--secondary); margin-bottom: 15px;">Pass Purchased Successfully!</h2>
+                <p style="color: #6b7280; margin-bottom: 20px;">Your bus pass has been activated</p>
+                
+                <div class="qr-code">
+                    <div class="qr-placeholder" id="qrCode">
+                        <canvas id="qrCanvas"></canvas>
+                    </div>
+                    <p style="color: var(--dark); font-weight: 600;">Pass ID: <span id="passId"></span></p>
+                    <p style="color: #6b7280; font-size: 12px;">Show this QR code to the conductor</p>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="closeModal('successModal'); loadPasses();">
+                    View My Passes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentUser = null;
+        let selectedPassType = null;
+        let selectedPrice = 0;
+        let userPasses = [];
+
+        // API Configuration - UPDATE THESE WITH YOUR AWS API GATEWAY URLs
+        
+const API_BASE_URL = 'https://8l3j8zefp8.execute-api.ap-south-1.amazonaws.com/proud';
+        
+         // Replace with your API Gateway URL
+        
+        // Initialize
+        window.onload = function() {
+            checkLoginStatus();
+            loadPasses();
+        };
+
+        function checkLoginStatus() {
+            const user = localStorage.getItem('busPassUser');
+            if (user) {
+                currentUser = JSON.parse(user);
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'block';
+                document.getElementById('passengerName').value = currentUser.name;
+                document.getElementById('mobileNumber').value = currentUser.mobile;
+            }
+        }
+
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function login() {
+            const mobile = document.getElementById('loginMobile').value;
+            const name = document.getElementById('loginName').value;
+
+            if (!mobile || mobile.length !== 10) {
+                alert('Please enter a valid 10-digit mobile number');
+                return;
+            }
+
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+
+            currentUser = { mobile, name, userId: 'USER_' + Date.now() };
+            localStorage.setItem('busPassUser', JSON.stringify(currentUser));
+            
+            // Save to DynamoDB (API call)
+            saveUserToDB(currentUser);
+
+            checkLoginStatus();
+            closeModal('loginModal');
+        }
+
+        function logout() {
+            localStorage.removeItem('busPassUser');
+            currentUser = null;
+            document.getElementById('userName').textContent = '';
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            userPasses = [];
+            loadPasses();
+        }
+
+        function selectPass(type, price) {
+            document.querySelectorAll('.pass-type').forEach(el => el.classList.remove('active'));
+            event.target.closest('.pass-type').classList.add('active');
+            selectedPassType = type;
+            selectedPrice = price;
+            updatePrice();
+        }
+//oooooooooooooooooo
+       // index7.html mein is function ko is tarah badlein:
+async function updatePrice() {
+    if (!selectedPrice) return;
+    
+    const discount = document.getElementById('discount').value;
+    
+    // 🛑 New: Fare calculation ko backend (Lambda) se fetch karein
+    try {
+        const response = await fetch(`${API_BASE_URL}/fare`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ selectedPrice: selectedPrice, discountType: discount })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const finalPrice = data.finalAmount;
+            document.getElementById('totalAmount').textContent = '₹' + finalPrice;
+        } else {
+            // Error hone par client-side fallback
+            console.error('Fare API failed, using client-side fallback.');
+            let finalPrice = selectedPrice;
+            if (discount === 'student') finalPrice = selectedPrice * 0.8;
+            else if (discount === 'senior') finalPrice = selectedPrice * 0.5;
+            document.getElementById('totalAmount').textContent = '₹' + Math.round(finalPrice);
+        }
+    } catch (error) {
+        // Network error hone par client-side fallback
+        console.error('Fare API network error, using client-side fallback:', error);
+        let finalPrice = selectedPrice;
+        if (discount === 'student') finalPrice = selectedPrice * 0.8;
+        else if (discount === 'senior') finalPrice = selectedPrice * 0.5;
+        document.getElementById('totalAmount').textContent = '₹' + Math.round(finalPrice);
+    }
+}
+
+        //pppppppppppppppppppppppppppp
+
+        function proceedToPay() {
+            if (!currentUser) {
+                alert('Please login first');
+                showLoginModal();
+                return;
+            }
+
+            if (!selectedPassType) {
+                alert('Please select a pass type');
+                return;
+            }
+
+            const fromStop = document.getElementById('fromStop').value;
+            const toStop = document.getElementById('toStop').value;
+            const name = document.getElementById('passengerName').value;
+            const mobile = document.getElementById('mobileNumber').value;
+            const email = document.getElementById('emailAddress').value;
+
+            if (!fromStop || !toStop) {
+                alert('Please select route');
+                return;
+            }
+
+            if (!name || !mobile || !email) {
+                alert('Please fill all details');
+                return;
+            }
+
+            const totalAmount = document.getElementById('totalAmount').textContent;
+            document.getElementById('payAmount').textContent = totalAmount;
+            document.getElementById('paymentModal').classList.add('active');
+        }
+            // kkkkkkkkkkkkkkkkkkkkkkkkkk
+
+             function isValidName(name) {
+    // केवल अक्षर और स्पेस (Only letters and spaces)
+    return /^[a-zA-Z\s]+$/.test(name);
+}
+
+function isValidMobile(mobile) {
+    // ठीक 10 अंक (Exactly 10 digits)
+    return /^\d{10}$/.test(mobile);
+}
+
+function isValidEmail(email) {
+    // मानक ईमेल प्रारूप (Standard email format)
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// Login फंक्शन में बाधाएं
+function login() {
+    const mobile = document.getElementById('loginMobile').value.trim();
+    const name = document.getElementById('loginName').value.trim();
+
+    if (!isValidMobile(mobile)) {
+        alert('❌ कृपया 10 अंकों का एक मान्य मोबाइल नंबर डालें।');
+        return;
+    }
+
+    if (!isValidName(name) || name.length < 2) {
+        alert('❌ कृपया अपना मान्य नाम (केवल अक्षर) डालें।');
+        return;
+    }
+    
+    // ... (rest of the login logic)
+    currentUser = { mobile, name, userId: 'USER_' + Date.now() };
+    localStorage.setItem('busPassUser', JSON.stringify(currentUser));
+    
+    // Save to DynamoDB (API call)
+    saveUserToDB(currentUser);
+
+    checkLoginStatus();
+    closeModal('loginModal');
+}
+
+// Proceed to Pay फंक्शन में बाधाएं
+function proceedToPay() {
+    if (!currentUser) {
+        alert('❌ आगे बढ़ने के लिए कृपया पहले लॉगिन करें।');
+        showLoginModal();
+        return;
+    }
+
+    if (!selectedPassType) {
+        alert('❌ कृपया एक पास प्रकार (Daily, Weekly, Monthly) चुनें।');
+        return;
+    }
+
+    const fromStop = document.getElementById('fromStop').value;
+    const toStop = document.getElementById('toStop').value;
+    const name = document.getElementById('passengerName').value.trim();
+    const mobile = document.getElementById('mobileNumber').value.trim();
+    const email = document.getElementById('emailAddress').value.trim();
+
+    if (!fromStop || !toStop) {
+        alert('❌ कृपया यात्रा का मार्ग (From Stop और To Stop) चुनें।');
+        return;
+    }
+    
+    if (fromStop === toStop) {
+        alert('❌ प्रारंभिक स्टॉप (From Stop) और गंतव्य स्टॉप (To Stop) समान नहीं हो सकते।');
+        return;
+    }
+
+    if (!isValidName(name) || name.length < 2) {
+        alert('❌ कृपया यात्री का एक मान्य नाम (केवल अक्षर) डालें।');
+        return;
+    }
+
+    if (!isValidMobile(mobile)) {
+        alert('❌ कृपया 10 अंकों का एक मान्य मोबाइल नंबर डालें।');
+        return;
+    }
+
+    if (email && !isValidEmail(email)) {
+        alert('❌ कृपया एक मान्य ईमेल पता डालें।');
+        return;
+    }
+
+    const totalAmount = document.getElementById('totalAmount').textContent;
+    document.getElementById('payAmount').textContent = totalAmount;
+    document.getElementById('paymentModal').classList.add('active');
+}
+
+
+
+       // Payment Details फंक्शन में बाधाएं
+function completePayment() {
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const paymentDetails = document.getElementById('paymentDetails').value.trim();
+    let validationPassed = false;
+    let errorMessage = '';
+
+    if (!paymentDetails) {
+        alert('❌ कृपया भुगतान विवरण (Payment Details) दर्ज करें।');
+        return;
+    }
+
+    switch (paymentMethod) {
+        case 'upi':
+            // UPI ID format: example@bank, example.user@okicici
+            if (/^[a-zA-Z0-9.\-]+@[a-zA-Z0-9\-]+$/.test(paymentDetails)) {
+                validationPassed = true;
+            } else {
+                errorMessage = '❌ अमान्य UPI ID प्रारूप। कृपया एक मान्य ID डालें (उदा: user@bank)।';
+            }
+            break;
+        case 'card':
+            // Simple 16-digit card number check
+            if (/^\d{16}$/.test(paymentDetails)) {
+                validationPassed = true;
+            } else {
+                errorMessage = '❌ अमान्य कार्ड नंबर। कृपया 16 अंकों का कार्ड नंबर डालें।';
+            }
+            break;
+        default:
+            // For Netbanking/Wallet, a non-empty detail is accepted for this simple demo
+            validationPassed = true;
+            break;
+    }
+
+    if (!validationPassed) {
+        alert(errorMessage);
+        return;
+    }
+    
+    // ... (rest of the payment logic)
+    closeModal('paymentModal');
+
+    // Simulate payment processing
+    setTimeout(() => {
+        const passData = {
+            passId: 'BP' + Date.now(),
+            userId: currentUser.userId,
+            passType: selectedPassType,
+            fromStop: document.getElementById('fromStop').value,
+            toStop: document.getElementById('toStop').value,
+            passengerName: document.getElementById('passengerName').value,
+            mobile: document.getElementById('mobileNumber').value,
+            email: document.getElementById('emailAddress').value,
+            amount: document.getElementById('totalAmount').textContent,
+            purchaseDate: new Date().toISOString(),
+            expiryDate: calculateExpiry(selectedPassType),
+            status: 'active'
+        };
+
+        // Save to DynamoDB
+        savePassToDB(passData);
+
+        // Generate QR Code
+        generateQRCode(passData.passId);
+        document.getElementById('passId').textContent = passData.passId;
+        
+        document.getElementById('successModal').classList.add('active');
+    }, 1500);
+}
+        function calculateExpiry(type) {
+            const now = new Date();
+            if (type === 'daily') {
+                now.setDate(now.getDate() + 1);
+            } else if (type === 'weekly') {
+                now.setDate(now.getDate() + 7);
+            } else if (type === 'monthly') {
+                now.setDate(now.getDate() + 30);
+            }
+            return now.toISOString();
+        }
+
+        function generateQRCode(passId) {
+            const canvas = document.getElementById('qrCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 180;
+            canvas.height = 180;
+            
+            // Simple QR-like pattern (in production, use a real QR library)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, 180, 180);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(10, 10, 160, 160);
+            ctx.fillStyle = '#000';
+            ctx.font = '12px monospace';
+            ctx.fillText(passId, 20, 90);
+            
+            // Draw random pattern
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * 140 + 20;
+                const y = Math.random() * 140 + 20;
+                const size = Math.random() * 5 + 2;
+                ctx.fillRect(x, y, size, size);
+            }
+        }
+
+
+
+
+       // index7.html mein is function ko is tarah badlein:
+async function loadPasses() {
+    if (!currentUser) {
+        document.getElementById('passList').innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px 0;">Please login to view your passes</p>';
+        return;
+    }
+
+    try {
+        // 🛑 Local Storage Logic ko Hataayein/Comment karein
+        // const passes = JSON.parse(localStorage.getItem('userPasses_' + currentUser.userId) || '[]');
+
+        // 🛑 API Gateway Call: Uncomment these lines
+        const response = await fetch(`${API_BASE_URL}/passes/${currentUser.userId}`, {
+             method: 'GET'
+        });
+
+        if (response.ok) {
+            const passes = await response.json();
+            
+            if (passes.length === 0) {
+                document.getElementById('passList').innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px 0;">No passes purchased yet</p>';
+                return;
+            }
+
+            // Display logic (rest of the code - same rakhein)
+            let html = '';
+            passes.forEach(pass => {
+                const isExpired = new Date(pass.expiryDate) < new Date();
+                // ... (HTML content)
+                html += `
+                    <div class="pass-item ${isExpired ? 'expired' : ''}">
+                        <h4>${pass.passType.toUpperCase()} PASS</h4>
+                        <p><strong>Pass ID:</strong> ${pass.passId}</p>
+                        <p><strong>Route:</strong> ${pass.fromStop} → ${pass.toStop}</p>
+                        <p><strong>Valid Till:</strong> ${new Date(pass.expiryDate).toLocaleDateString('en-IN')}</p>
+                        <p><strong>Amount:</strong> ${pass.amount}</p>
+                        <span class="status-badge ${isExpired ? 'status-expired' : 'status-active'}">
+                            ${isExpired ? 'Expired' : 'Active'}
+                        </span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('passList').innerHTML = html;
+        } else {
+             console.error('API Error loading passes:', response.status);
+        }
+        
+    } catch (error) {
+         console.error('Error loading passes:', error);
+    }
+}
+        
+
+        function showMyPasses() {
+            loadPasses();
+        }
+
+        // API Functions (to be connected with AWS Lambda)
+        // index7.html mein is function ko is tarah badlein:
+async function saveUserToDB(userData) {
+    try {
+        // 🛑 API Gateway Call: Uncomment these lines
+        const response = await fetch(`${API_BASE_URL}/users`, {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify(userData)
+        });
+        
+        if (response.ok) {
+             console.log('User saved to AWS:', userData);
+        } else {
+             console.error('API Error saving user:', response.status);
+        }
+
+    } catch (error) {
+        console.error('Error saving user:', error);
+    }
+}
+       // index7.html mein is function ko is tarah badlein:
+async function savePassToDB(passData) {
+    try {
+        // 🛑 Local Storage Logic ko Hataayein/Comment karein
+        // const passes = JSON.parse(localStorage.getItem('userPasses_' + currentUser.userId) || '[]');
+        // passes.push(passData);
+        // localStorage.setItem('userPasses_' + currentUser.userId, JSON.stringify(passes));
+
+        // 🛑 API Gateway Call: Uncomment these lines
+         const response = await fetch(`${API_BASE_URL}/passes`, {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify(passData)
+         });
+         
+        if (response.ok) {
+             console.log('Pass saved to AWS:', passData);
+        } else {
+             console.error('API Error saving pass:', response.status);
+        }
+         
+    } catch (error) {
+        console.error('Error saving pass:', error);
+    }
+}
+
+
+    </script>
+</body>
+</html>
